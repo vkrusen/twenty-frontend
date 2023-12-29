@@ -1,0 +1,35 @@
+name: CI Server
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+jobs:
+  server-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: twentycrm/twenty-postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.11.0
+        with:
+            access_token: ${{ github.token }}
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+      - name: Server / Install Dependencies
+        run: yarn
+      - name: Server / Run linter
+        run: yarn nx lint twenty-server
+      - name: Server / Run jest tests
+        run: yarn nx test twenty-server
+      # - name: Server / Run e2e tests
+      #   run: yarn nx test:e2e twenty-server
